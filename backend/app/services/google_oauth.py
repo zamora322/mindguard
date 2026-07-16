@@ -13,14 +13,15 @@ class GoogleOAuthProvider(OAuthProvider):
         self.token_url = "https://oauth2.googleapis.com/token"
         self.user_info_url = "https://www.googleapis.com/oauth2/v2/userinfo"
 
-    def get_authorization_url(self) -> str:
+    def get_authorization_url(self, scopes: str = "openid email profile") -> str:
         params = {
             "client_id": self.client_id,
             "redirect_uri": self.redirect_uri,
             "response_type": "code",
-            "scope": "openid email profile",
+            "scope": scopes,
             "access_type": "offline",
-            "prompt": "select_account"
+            "prompt": "select_account",
+            "include_granted_scopes": "true" # Enforce Google incremental authorization
         }
         return f"{self.auth_url}?{urlencode(params)}"
 
@@ -41,6 +42,8 @@ class GoogleOAuthProvider(OAuthProvider):
             
             tokens = token_response.json()
             access_token = tokens.get("access_token")
+            # Google returns the space-separated list of scopes approved by the user
+            granted_scopes = tokens.get("scope", "")
             
             # 2. Fetch user profile using the access token
             headers = {"Authorization": f"Bearer {access_token}"}
@@ -48,4 +51,7 @@ class GoogleOAuthProvider(OAuthProvider):
             if user_response.status_code != 200:
                 raise Exception(f"Failed to fetch user info from Google: {user_response.text}")
                 
-            return user_response.json()
+            user_data = user_response.json()
+            # Append the granted scopes to the profile info
+            user_data["granted_scopes"] = granted_scopes
+            return user_data

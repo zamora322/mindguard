@@ -266,10 +266,31 @@
   position: relative;
 }
 
+.statusBadgeDisconnected {
+  background-color: #F1F3F4;
+  color: #5F6368;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  position: relative;
+}
+
 .statusDot {
   width: 6px;
   height: 6px;
   background-color: #34A853;
+  border-radius: 50%;
+}
+
+.statusDotDisconnected {
+  width: 6px;
+  height: 6px;
+  background-color: #70757a;
   border-radius: 50%;
 }
 
@@ -301,8 +322,15 @@
 .cardHeaderInline {
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
   margin-bottom: 12px;
+  width: 100%;
+}
+
+.cardHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .gmailIcon {
@@ -328,6 +356,25 @@
   line-height: 1.5;
   color: #5F6368;
   margin: 0 0 20px 0;
+  min-height: 40px;
+}
+
+.statusTextConnected {
+  font-size: 12px;
+  font-weight: 500;
+  color: #137333;
+  background-color: #E6F4EA;
+  padding: 4px 8px;
+  border-radius: 12px;
+}
+
+.statusTextDisconnected {
+  font-size: 12px;
+  font-weight: 500;
+  color: #5F6368;
+  background-color: #F1F3F4;
+  padding: 4px 8px;
+  border-radius: 12px;
 }
 
 .outlineButton {
@@ -346,6 +393,24 @@
 .outlineButton:hover {
   background-color: #F8F9FA;
   border-color: #1a73e8;
+}
+
+.outlineButtonConnected {
+  background-color: #ffffff;
+  border: 1px solid #DADCE0;
+  color: #ea4335; /* Red text for disconnect */
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.outlineButtonConnected:hover {
+  background-color: #FCE8E6;
+  border-color: #ea4335;
 }
 
 /* Cognitive Load Card Specifics (Empty/Inactive) */

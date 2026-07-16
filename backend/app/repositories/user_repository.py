@@ -33,3 +33,23 @@ class UserRepository(ABC):
         Updates the profile (name and avatar) of an existing user.
         """
         pass
+
+    @abstractmethod
+    async def save_integration(
+        self,
+        user_id: str,
+        provider: str,
+        status: str,
+        scopes: str
+    ) -> Dict[str, Any]:
+        """
+        Saves or updates a user integration provider record and its authorized scopes.
+        """
+        pass
+
+    @abstractmethod
+    async def get_integrations(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves active integrations and scopes for a given user.
+        """
+        pass

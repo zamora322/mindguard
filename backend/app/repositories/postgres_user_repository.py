@@ -1,4 +1,5 @@
 import asyncpg
+import uuid
 from typing import Optional, Dict, Any
 from app.repositories.user_repository import UserRepository
 
@@ -44,3 +45,34 @@ class PostgresUserRepository(UserRepository):
         if not row:
             raise Exception(f"User with google_id {google_id} not found to update.")
         return dict(row)
+
+    async def save_integration(
+        self,
+        user_id: str,
+        provider: str,
+        status: str,
+        scopes: str
+    ) -> Dict[str, Any]:
+        user_uuid = uuid.UUID(user_id) if isinstance(user_id, str) else user_id
+        
+        query = """
+            INSERT INTO user_integrations (user_id, provider, status, scopes)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (user_id, provider)
+            DO UPDATE SET
+                status = EXCLUDED.status,
+                scopes = EXCLUDED.scopes,
+                updated_at = CURRENT_TIMESTAMP
+            RETURNING id, user_id, provider, status, scopes, connected_at, updated_at
+        """
+        row = await self.conn.fetchrow(query, user_uuid, provider, status, scopes)
+        if not row:
+            raise Exception("Failed to upsert integration record.")
+        return dict(row)
+
+    async def get_integrations(self, user_id: str) -> Optional[Dict[str, Any]]:
+        user_uuid = uuid.UUID(user_id) if isinstance(user_id, str) else user_id
+        
+        query = "SELECT id, user_id, provider, status, scopes, connected_at, updated_at FROM user_integrations WHERE user_id = $1 AND provider = $2"
+        row = await self.conn.fetchrow(query, user_uuid, "google")
+        return dict(row) if row else None

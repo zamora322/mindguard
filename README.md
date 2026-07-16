@@ -133,6 +133,12 @@ Si realizas cambios en el código o en las variables de entorno y necesitas volv
   docker compose up --build -d db
   ```
 
+* **Eliminar la base de datos y volver a crearla:**
+  ```bash
+  docker compose down -v
+  docker compose up --build -d db
+  ```
+
 *Una vez iniciados los contenedores, puedes acceder al frontend en [http://localhost:3000](http://localhost:3000) y al backend en [http://localhost:8000](http://localhost:8000).*
 
 ---

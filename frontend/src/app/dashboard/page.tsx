@@ -25,10 +25,21 @@ interface UserProfile {
   picture: string;
 }
 
+interface IntegrationsState {
+  google: boolean;
+  gmail: boolean;
+  calendar: boolean;
+}
+
 export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [integrations, setIntegrations] = useState<IntegrationsState>({
+    google: false,
+    gmail: false,
+    calendar: false
+  });
 
   useEffect(() => {
     const fetchSession = async () => {
@@ -42,6 +53,8 @@ export default function DashboardPage() {
           const data = await response.json();
           if (data.status === "success" && data.user) {
             setUser(data.user);
+            // Si el usuario tiene sesión activa, recuperamos sus integraciones
+            fetchIntegrations(apiUrl);
           }
         }
       } catch (e) {
@@ -50,6 +63,21 @@ export default function DashboardPage() {
         setIsLoading(false);
       }
     };
+
+    const fetchIntegrations = async (apiUrl: string) => {
+      try {
+        const response = await fetch(`${apiUrl}/api/v1/auth/integrations`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setIntegrations(data);
+        }
+      } catch (e) {
+        console.error("Error al obtener integraciones:", e);
+      }
+    };
+
     fetchSession();
   }, []);
 
@@ -64,6 +92,36 @@ export default function DashboardPage() {
       console.error("Error al cerrar sesión en el servidor:", e);
     }
     window.location.href = "/";
+  };
+
+  const handleConnectGmail = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${apiUrl}/api/v1/auth/login?scope_type=gmail`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      }
+    } catch (e) {
+      console.error("Error al obtener la URL de conexión a Gmail:", e);
+    }
+  };
+
+  const handleConnectCalendar = async () => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const response = await fetch(`${apiUrl}/api/v1/auth/login?scope_type=calendar`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.url) {
+          window.location.href = data.url;
+        }
+      }
+    } catch (e) {
+      console.error("Error al obtener la URL de conexión a Google Calendar:", e);
+    }
   };
 
   if (isLoading) {
@@ -187,16 +245,18 @@ export default function DashboardPage() {
               </div>
               
               <div className={styles.badgeContainer}>
-                <span className={styles.statusBadge}>
-                  <span className={styles.statusDot}></span>
-                  Activa
+                <span className={integrations.google ? styles.statusBadge : styles.statusBadgeDisconnected}>
+                  <span className={integrations.google ? styles.statusDot : styles.statusDotDisconnected}></span>
+                  {integrations.google ? "🟢 Conectado" : "⚪ No conectado"}
                 </span>
                 <div className={styles.accentWave}></div>
               </div>
             </div>
             
             <div className={styles.cardFooter}>
-              <span className={styles.statusLabel}>ESTADO: CONECTADA</span>
+              <span className={styles.statusLabel}>
+                {integrations.google ? "ESTADO: CONECTADA" : "ESTADO: DESCONECTADA"}
+              </span>
             </div>
           </div>
 
@@ -204,28 +264,48 @@ export default function DashboardPage() {
           <div className={styles.card}>
             <div>
               <div className={styles.cardHeaderInline}>
-                <Mail className={styles.gmailIcon} size={24} />
-                <h3 className={styles.cardTitle}>Gmail</h3>
+                <div className={styles.cardHeaderLeft}>
+                  <Mail className={styles.gmailIcon} size={24} />
+                  <h3 className={styles.cardTitle}>Gmail</h3>
+                </div>
+                <span className={integrations.gmail ? styles.statusTextConnected : styles.statusTextDisconnected}>
+                  {integrations.gmail ? "🟢 Conectado" : "⚪ No conectado"}
+                </span>
               </div>
               <p className={styles.cardDescription}>
                 Conecta Gmail para que MindGuard pueda analizar tu carga de correo y ayudarte a priorizar tu trabajo.
               </p>
             </div>
-            <button className={styles.outlineButton}>Conectar Gmail</button>
+            <button 
+              className={integrations.gmail ? styles.outlineButtonConnected : styles.outlineButton}
+              onClick={integrations.gmail ? undefined : handleConnectGmail}
+            >
+              {integrations.gmail ? "Desconectar Gmail" : "Conectar Gmail"}
+            </button>
           </div>
 
           {/* Card C: Google Calendar Integration */}
           <div className={styles.card}>
             <div>
               <div className={styles.cardHeaderInline}>
-                <Calendar className={styles.calendarIcon} size={24} />
-                <h3 className={styles.cardTitle}>Google Calendar</h3>
+                <div className={styles.cardHeaderLeft}>
+                  <Calendar className={styles.calendarIcon} size={24} />
+                  <h3 className={styles.cardTitle}>Google Calendar</h3>
+                </div>
+                <span className={integrations.calendar ? styles.statusTextConnected : styles.statusTextDisconnected}>
+                  {integrations.calendar ? "🟢 Conectado" : "⚪ No conectado"}
+                </span>
               </div>
               <p className={styles.cardDescription}>
                 Conecta tu calendario para identificar reuniones, bloques de enfoque y posibles conflictos.
               </p>
             </div>
-            <button className={styles.outlineButton}>Conectar Calendario</button>
+            <button 
+              className={integrations.calendar ? styles.outlineButtonConnected : styles.outlineButton}
+              onClick={integrations.calendar ? undefined : handleConnectCalendar}
+            >
+              {integrations.calendar ? "Desconectar Calendario" : "Conectar Calendario"}
+            </button>
           </div>
 
           {/* Card D: Cognitive Load */}
