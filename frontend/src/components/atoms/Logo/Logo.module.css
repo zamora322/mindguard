@@ -1,0 +1,9 @@
+.logoContainer {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logoImage {
+  object-fit: contain;
+}

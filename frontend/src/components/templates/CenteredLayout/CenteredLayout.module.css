@@ -1,0 +1,27 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: #f8f9fa; /* Material grey background */
+  box-sizing: border-box;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 480px) {
+  .wrapper {
+    background-color: #ffffff; /* White background on mobile as per Google sign-in look */
+    align-items: flex-start;
+    padding-top: 48px;
+  }
+}
