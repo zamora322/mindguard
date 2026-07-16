@@ -1,7 +1,7 @@
 # MindGuard
 
 MindGuard es un asistente basado en Inteligencia Artificial que se integra con el ecosistema de Google Workspace (Gmail, Google Calendar, Google Meet) para optimizar la gestión del tiempo de profesionales con alta carga laboral. El sistema analiza de forma asíncrona la información entrante, evalúa la relevancia de los compromisos y ofrece una interfaz centralizada donde el usuario puede visualizar su agenda depurada, recibir resúmenes contextuales y entender por qué ciertas tareas o reuniones han sido priorizadas o marcadas como prescindibles. 
-Este repositorio contiene tanto el frontend construido con **Next.js** (utilizando el patrón de diseño atómico y CSS Modules) como el backend construido con **FastAPI**.
+Este repositorio contiene tanto el frontend construido con **Next.js** (utilizando el patrón de diseño atómico, CSS Modules y **Lucide React** para la iconografía) como el backend construido con **FastAPI**.
 
 ---
 
