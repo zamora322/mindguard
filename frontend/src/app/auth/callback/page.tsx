@@ -128,7 +128,7 @@ function CallbackContent() {
         </Typography>
       </div>
       <Typography variant="h2" className={styles.welcomeText}>
-        Te has autenticado correctamente en <br>MindGuard</br>.
+        Te has autenticado correctamente en *MindGuard*.
       </Typography>
       <Button onClick={handleGoHome} className={styles.btnSecondary}>
         Cerrar Sesión

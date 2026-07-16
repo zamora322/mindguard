@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: str = ""
     GOOGLE_REDIRECT_URI: str = ""
 
+    # Database Configuration
+    DATABASE_URL: str = ""
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file=".env",
