@@ -276,12 +276,14 @@ export default function DashboardPage() {
                 Conecta Gmail para que MindGuard pueda analizar tu carga de correo y ayudarte a priorizar tu trabajo.
               </p>
             </div>
-            <button 
-              className={integrations.gmail ? styles.outlineButtonConnected : styles.outlineButton}
-              onClick={integrations.gmail ? undefined : handleConnectGmail}
-            >
-              {integrations.gmail ? "Desconectar Gmail" : "Conectar Gmail"}
-            </button>
+            {!integrations.gmail && (
+              <button 
+                className={styles.outlineButton}
+                onClick={handleConnectGmail}
+              >
+                Conectar Gmail
+              </button>
+            )}
           </div>
 
           {/* Card C: Google Calendar Integration */}
@@ -300,12 +302,14 @@ export default function DashboardPage() {
                 Conecta tu calendario para identificar reuniones, bloques de enfoque y posibles conflictos.
               </p>
             </div>
-            <button 
-              className={integrations.calendar ? styles.outlineButtonConnected : styles.outlineButton}
-              onClick={integrations.calendar ? undefined : handleConnectCalendar}
-            >
-              {integrations.calendar ? "Desconectar Calendario" : "Conectar Calendario"}
-            </button>
+            {!integrations.calendar && (
+              <button 
+                className={styles.outlineButton}
+                onClick={handleConnectCalendar}
+              >
+                Conectar Calendario
+              </button>
+            )}
           </div>
 
           {/* Card D: Cognitive Load */}
