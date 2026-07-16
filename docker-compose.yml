@@ -1,12 +1,14 @@
 services:
   db:
     image: postgres:16-alpine
+    command: postgres -c timezone=America/Mexico_City
     ports:
       - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: mindguard
+      TZ: America/Mexico_City
     volumes:
       - postgres_data:/var/lib/postgresql/data
       # Automatically initialize database using database.sql schema
@@ -23,6 +25,7 @@ services:
       - ./backend/.env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/mindguard
+      - TZ=America/Mexico_City
     depends_on:
       - db
     restart: always
@@ -37,6 +40,8 @@ services:
       - "3000:3000"
     env_file:
       - ./frontend/.env
+    environment:
+      - TZ=America/Mexico_City
     depends_on:
       - backend
     restart: always
