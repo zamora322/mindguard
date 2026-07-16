@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Cookie, Response, Request
 from pydantic import BaseModel
 import asyncpg
 from typing import Optional
@@ -8,6 +8,7 @@ from app.services.google_oauth import GoogleOAuthProvider
 from app.core.db import get_db_connection
 from app.repositories.user_repository import UserRepository
 from app.repositories.postgres_user_repository import PostgresUserRepository
+from app.core.security import create_session_token, verify_session_token
 
 router = APIRouter()
 
@@ -34,18 +35,19 @@ def get_login_url(provider: OAuthProvider = Depends(get_oauth_provider)):
 @router.post("/callback")
 async def handle_callback(
     request_data: CallbackRequest,
+    response: Response,
+    request: Request,
     provider: OAuthProvider = Depends(get_oauth_provider),
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """
     Receives the OAuth code from the frontend, exchanges it for Google user info,
-    then synchronizes (INSERT / UPDATE) the user record in the PostgreSQL database.
+    sychronizes the user record in PostgreSQL, and generates an HttpOnly session cookie.
     """
     try:
         # 1. Fetch user profile from Google
         google_user = await provider.fetch_user_info(request_data.code)
         
-        # Google user info key mappings (can return 'id' or OIDC 'sub')
         google_id = google_user.get("id") or google_user.get("sub")
         email = google_user.get("email")
         name = google_user.get("name")
@@ -57,31 +59,85 @@ async def handle_callback(
                 detail="Incomplete user profile returned by Google."
             )
 
-        # 2. Check if the google_id already exists in the database
+        # 2. Synchronize user record in database
         db_user = await user_repo.get_user_by_google_id(google_id)
-        
         if db_user:
-            # 3. YES: Update their name and avatar picture
             synced_user = await user_repo.update_user(google_id, name, picture)
         else:
-            # 4. NO: Insert a new user record
             synced_user = await user_repo.create_user(google_id, email, name, picture)
 
-        # 5. Return the synchronized database record
+        # 3. Create secure session payload and encode in JWT
+        user_payload = {
+            "id": str(synced_user.get("id")),
+            "email": synced_user.get("email"),
+            "name": synced_user.get("name"),
+            "picture": synced_user.get("picture")
+        }
+        session_token = create_session_token(user_payload)
+
+        # 4. Determine secure cookie flag dynamically based on request protocol
+        # (Allows HTTP on localhost for development, enforces Secure on HTTPS)
+        is_secure = request.url.scheme == "https"
+
+        response.set_cookie(
+            key="mindguard_session",
+            value=session_token,
+            httponly=True,
+            secure=is_secure,
+            samesite="lax",
+            max_age=14 * 24 * 3600 # 14 days
+        )
+
         return {
             "status": "success",
-            "user": {
-                "id": str(synced_user.get("id")),
-                "google_id": synced_user.get("google_id"),
-                "email": synced_user.get("email"),
-                "name": synced_user.get("name"),
-                "picture": synced_user.get("picture"),
-                "created_at": synced_user.get("created_at").isoformat() if synced_user.get("created_at") else None,
-                "updated_at": synced_user.get("updated_at").isoformat() if synced_user.get("updated_at") else None,
-            }
+            "message": "User authenticated and session established."
         }
     except Exception as e:
         raise HTTPException(
             status_code=400,
-            detail=f"Authentication and sync failed: {str(e)}"
+            detail=f"Authentication and session setup failed: {str(e)}"
         )
+
+@router.get("/me")
+async def get_me(
+    mindguard_session: Optional[str] = Cookie(None)
+):
+    """
+    Reads the HttpOnly mindguard_session cookie, validates the JWT signature,
+    and returns the authenticated user's profile details.
+    """
+    if not mindguard_session:
+        raise HTTPException(
+            status_code=401,
+            detail="Session cookie not found."
+        )
+
+    user_payload = verify_session_token(mindguard_session)
+    if not user_payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired session."
+        )
+
+    return {
+        "status": "success",
+        "user": user_payload
+    }
+
+@router.post("/logout")
+def logout(response: Response, request: Request):
+    """
+    Deletes the HttpOnly session cookie, ending the user session.
+    """
+    is_secure = request.url.scheme == "https"
+    
+    response.delete_cookie(
+        key="mindguard_session",
+        httponly=True,
+        secure=is_secure,
+        samesite="lax"
+    )
+    return {
+        "status": "success",
+        "message": "Logged out successfully."
+    }

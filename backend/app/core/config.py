@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     # Database Configuration
     DATABASE_URL: str = ""
 
+    # JWT Security Configuration
+    SECRET_KEY: str = "secret-fallback-do-not-use-in-production"
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file=".env",

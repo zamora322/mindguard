@@ -1,28 +1,19 @@
 "use client";
 
 import React, { useEffect, useState, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { CenteredLayout } from "../../../components/templates/CenteredLayout/CenteredLayout";
 import { Typography } from "../../../components/atoms/Typography/Typography";
 import { Button } from "../../../components/atoms/Button/Button";
 import styles from "./callback.module.css";
 
-interface UserProfile {
-  id: string;
-  email: string;
-  name: string;
-  given_name: string;
-  family_name: string;
-  picture: string;
-}
-
 function CallbackContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const code = searchParams.get("code");
   const errorParam = searchParams.get("error");
 
-  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
-  const [user, setUser] = useState<UserProfile | null>(null);
+  const [status, setStatus] = useState<"loading" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
@@ -47,6 +38,7 @@ function CallbackContent() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({ code }),
+          credentials: "include",
         });
 
         if (!response.ok) {
@@ -55,9 +47,10 @@ function CallbackContent() {
         }
 
         const data = await response.json();
-        if (data.status === "success" && data.user) {
-          setUser(data.user);
-          setStatus("success");
+        if (data.status === "success") {
+          // Redirigir inmediatamente a la página limpia de Dashboard
+          // La sesión está resguardada de forma segura en la cookie HttpOnly
+          router.replace("/dashboard");
         } else {
           throw new Error("Respuesta inválida del servidor");
         }
@@ -69,7 +62,7 @@ function CallbackContent() {
     };
 
     verifyAuth();
-  }, [code, errorParam]);
+  }, [code, errorParam, router]);
 
   const handleGoHome = () => {
     window.location.href = "/";
@@ -89,49 +82,17 @@ function CallbackContent() {
     );
   }
 
-  if (status === "error") {
-    return (
-      <div className={styles.card}>
-        <div className={styles.errorIcon}>⚠️</div>
-        <Typography variant="h1" className={styles.titleError}>
-          Error de Autenticación
-        </Typography>
-        <Typography variant="h2" className={styles.subtitle}>
-          {errorMessage}
-        </Typography>
-        <Button onClick={handleGoHome} className={styles.btn}>
-          Volver a Intentar
-        </Button>
-      </div>
-    );
-  }
-
   return (
     <div className={styles.card}>
-      {user?.picture && (
-        <img
-          src={user.picture}
-          alt={user.name}
-          className={styles.avatar}
-          referrerPolicy="no-referrer"
-        />
-      )}
-      <Typography variant="h1" className={styles.titleSuccess}>
-        ¡Inicio de sesión exitoso!
+      <div className={styles.errorIcon}>⚠️</div>
+      <Typography variant="h1" className={styles.titleError}>
+        Error de Autenticación
       </Typography>
-      <div className={styles.profileBox}>
-        <Typography variant="body" className={styles.name}>
-          {user?.name}
-        </Typography>
-        <Typography variant="caption" className={styles.email}>
-          {user?.email}
-        </Typography>
-      </div>
-      <Typography variant="h2" className={styles.welcomeText}>
-        Te has autenticado correctamente en *MindGuard*.
+      <Typography variant="h2" className={styles.subtitle}>
+        {errorMessage}
       </Typography>
-      <Button onClick={handleGoHome} className={styles.btnSecondary}>
-        Cerrar Sesión
+      <Button onClick={handleGoHome} className={styles.btn}>
+        Volver a Intentar
       </Button>
     </div>
   );

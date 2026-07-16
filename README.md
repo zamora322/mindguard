@@ -112,6 +112,27 @@ Si prefieres levantar todo el proyecto de forma unificada utilizando contenedore
    docker compose down
    ```
 
+### Reconstrucción de Contenedores
+
+Si realizas cambios en el código o en las variables de entorno y necesitas volver a generar las imágenes de Docker:
+
+* **Reconstruir y levantar todos los servicios a la vez:**
+  ```bash
+  docker compose up --build -d
+  ```
+
+* **Reconstruir un solo servicio (sin detener ni afectar los demás contenedores que estén corriendo):**
+  ```bash
+  # Reconstruir solo el frontend
+  docker compose up --build -d frontend
+
+  # Reconstruir solo el backend
+  docker compose up --build -d backend
+
+  # Reconstruir solo la base de datos
+  docker compose up --build -d db
+  ```
+
 *Una vez iniciados los contenedores, puedes acceder al frontend en [http://localhost:3000](http://localhost:3000) y al backend en [http://localhost:8000](http://localhost:8000).*
 
 ---

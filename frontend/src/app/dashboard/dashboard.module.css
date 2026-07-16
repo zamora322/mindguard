@@ -1,0 +1,135 @@
+.card {
+  background-color: #ffffff;
+  border: 1px solid #dadce0;
+  border-radius: 8px;
+  width: 100%;
+  max-width: 440px;
+  min-height: 380px;
+  padding: 40px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 480px) {
+  .card {
+    border: none;
+    box-shadow: none;
+    padding: 24px 16px;
+    background-color: transparent;
+  }
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #4285f4; /* Google Blue */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 24px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.title {
+  font-size: 20px !important;
+  margin-bottom: 8px !important;
+}
+
+.titleError {
+  color: #ea4335 !important; /* Google Red */
+  font-size: 20px !important;
+  margin-bottom: 8px !important;
+}
+
+.titleSuccess {
+  color: #34a853 !important; /* Google Green */
+  font-size: 20px !important;
+  margin-bottom: 16px !important;
+}
+
+.subtitle {
+  color: #5f6368;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  margin-bottom: 24px !important;
+  max-width: 300px;
+}
+
+.avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  border: 3px solid #e8f0fe;
+  margin-bottom: 16px;
+  object-fit: cover;
+}
+
+.profileBox {
+  margin-bottom: 24px;
+}
+
+.name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #202124;
+  margin: 0;
+}
+
+.email {
+  color: #5f6368;
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.welcomeText {
+  color: #202124;
+  font-size: 14px !important;
+  line-height: 20px !important;
+  margin-bottom: 32px !important;
+}
+
+.errorIcon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.btn {
+  background-color: #4285f4 !important;
+  color: white !important;
+  width: 100%;
+  height: 40px;
+  font-weight: 500;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background-color: #3b78e7 !important;
+}
+
+.btnSecondary {
+  background-color: #ffffff !important;
+  border: 1px solid #dadce0 !important;
+  color: #3c4043 !important;
+  width: 100%;
+  height: 40px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btnSecondary:hover {
+  background-color: #f8f9fa !important;
+}
