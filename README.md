@@ -82,6 +82,40 @@ Pasos para levantarlo:
 
 ---
 
+## Inicialización con Docker (Recomendado)
+
+Si prefieres levantar todo el proyecto de forma unificada utilizando contenedores de Docker (sin necesidad de configurar entornos virtuales locales de Node/Python), puedes hacerlo con **Docker Compose**.
+
+### Requisitos Previos:
+- Tener instalado **Docker** y **Docker Compose**.
+- Tener creados los archivos de variables de entorno `.env` en `backend/` y `.env` en `frontend/` (con tu `GOOGLE_CLIENT_ID` y demás variables).
+
+### Pasos para iniciar la aplicación:
+
+1. **Construir e iniciar los contenedores en segundo plano:**
+   ```bash
+   docker compose up --build -d
+   ```
+
+2. **Verificar el estado de los contenedores:**
+   ```bash
+   docker compose ps
+   ```
+
+3. **Ver los logs en tiempo real (opcional):**
+   ```bash
+   docker compose logs -f
+   ```
+
+4. **Detener los servicios:**
+   ```bash
+   docker compose down
+   ```
+
+*Una vez iniciados los contenedores, puedes acceder al frontend en [http://localhost:3000](http://localhost:3000) y al backend en [http://localhost:8000](http://localhost:8000).*
+
+---
+
 ## Principios de Diseño SOLID en Backend (FastAPI)
 
 El sistema de autenticación de FastAPI ha sido estructurado siguiendo buenas prácticas SOLID:
