@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # Gmail Sync Configuration
     GMAIL_SYNC_LIMIT: int = 30
 
+    # Calendar Sync Configuration
+    CALENDAR_SYNC_DAYS: int = 8
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file=".env",

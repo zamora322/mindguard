@@ -11,7 +11,10 @@ from app.repositories.user_repository import UserRepository
 from app.repositories.postgres_user_repository import PostgresUserRepository
 from app.repositories.email_repository import EmailRepository
 from app.repositories.postgres_email_repository import PostgresEmailRepository
+from app.repositories.calendar_repository import CalendarRepository
+from app.repositories.postgres_calendar_repository import PostgresCalendarRepository
 from app.services.gmail_sync_service import GmailSyncService
+from app.services.google_calendar_sync_service import GoogleCalendarSyncService
 from app.core.security import create_session_token, verify_session_token
 
 router = APIRouter()
@@ -26,8 +29,8 @@ def get_user_repository(conn: asyncpg.Connection = Depends(get_db_connection)) -
 def get_email_repository(conn: asyncpg.Connection = Depends(get_db_connection)) -> EmailRepository:
     return PostgresEmailRepository(conn)
 
-def get_gmail_sync_service(email_repo: EmailRepository = Depends(get_email_repository)) -> GmailSyncService:
-    return GmailSyncService(email_repo)
+def get_calendar_repository(conn: asyncpg.Connection = Depends(get_db_connection)) -> CalendarRepository:
+    return PostgresCalendarRepository(conn)
 
 async def run_gmail_sync_background(user_id: str, access_token: str):
     """
@@ -36,7 +39,7 @@ async def run_gmail_sync_background(user_id: str, access_token: str):
     """
     from app.core.db import db_pool
     if not db_pool:
-        print("db_pool is not initialized, cannot run background sync")
+        print("db_pool is not initialized, cannot run background gmail sync")
         return
 
     try:
@@ -46,6 +49,24 @@ async def run_gmail_sync_background(user_id: str, access_token: str):
             await service.sync_user_emails(user_id=user_id, access_token=access_token)
     except Exception as e:
         print(f"Background Gmail sync error for user {user_id}: {e}")
+
+async def run_calendar_sync_background(user_id: str, access_token: str):
+    """
+    Acquires its own database connection from the pool to run calendar sync in background.
+    """
+    from app.core.db import db_pool
+    if not db_pool:
+        print("db_pool is not initialized, cannot run background calendar sync")
+        return
+
+    try:
+        async with db_pool.acquire() as conn:
+            email_repo = PostgresEmailRepository(conn)
+            calendar_repo = PostgresCalendarRepository(conn)
+            service = GoogleCalendarSyncService(calendar_repo, email_repo)
+            await service.sync_user_calendar(user_id=user_id, access_token=access_token)
+    except Exception as e:
+        print(f"Background Calendar sync error for user {user_id}: {e}")
 
 class CallbackRequest(BaseModel):
     code: str
@@ -79,7 +100,7 @@ async def handle_callback(
 ):
     """
     Receives the OAuth code from the frontend, exchanges it for Google user info and tokens,
-    synchronizes user/integration records in PostgreSQL, and triggers email sync if Gmail scope is granted.
+    synchronizes user/integration records in PostgreSQL, and triggers sync tasks if scopes are granted.
     """
     try:
         # 1. Fetch user profile, tokens and granted scopes from Google
@@ -175,6 +196,12 @@ async def handle_callback(
         if "https://www.googleapis.com/auth/gmail.readonly" in unioned_scopes and access_token:
             asyncio.create_task(
                 run_gmail_sync_background(user_id=user_id, access_token=access_token)
+            )
+
+        # 4. Trigger calendar sync in background if Calendar scope is granted
+        if "https://www.googleapis.com/auth/calendar.readonly" in unioned_scopes and access_token:
+            asyncio.create_task(
+                run_calendar_sync_background(user_id=user_id, access_token=access_token)
             )
 
         return {
@@ -276,13 +303,14 @@ async def get_integrations(
 
 @router.get("/sync-status")
 async def get_sync_status(
+    provider: str = "gmail",
     mindguard_session: Optional[str] = Cookie(None),
     email_repo: EmailRepository = Depends(get_email_repository),
     user_repo: UserRepository = Depends(get_user_repository)
 ):
     """
-    Returns the current email synchronization progress and state for the logged-in user.
-    Auto-triggers background sync if Gmail is connected but sync hasn't run yet.
+    Returns the current synchronization progress and state for the logged-in user and specified provider.
+    Supports provider='gmail' or provider='calendar'.
     """
     if not mindguard_session:
         raise HTTPException(
@@ -298,7 +326,17 @@ async def get_sync_status(
         )
 
     user_id = user_payload.get("id")
-    state = await email_repo.get_sync_state(user_id, provider="google")
+    sync_provider = "calendar" if provider == "calendar" else "gmail"
+    required_scope = (
+        "https://www.googleapis.com/auth/calendar.readonly" 
+        if sync_provider == "calendar" 
+        else "https://www.googleapis.com/auth/gmail.readonly"
+    )
+
+    state = await email_repo.get_sync_state(user_id, provider=sync_provider)
+    if not state and sync_provider == "gmail":
+        # Fallback to check legacy 'google' provider row
+        state = await email_repo.get_sync_state(user_id, provider="google")
 
     if not state or state.get("status") == "idle":
         # Check if user has access_token in user_integrations to trigger sync
@@ -306,13 +344,19 @@ async def get_sync_status(
         if (
             integration 
             and integration.get("access_token") 
-            and "https://www.googleapis.com/auth/gmail.readonly" in integration.get("scopes", "")
+            and required_scope in integration.get("scopes", "")
         ):
             access_token = integration.get("access_token")
             # Set state immediately to syncing
-            await email_repo.upsert_sync_state(user_id=user_id, provider="google", status="syncing", synced_count=0)
-            asyncio.create_task(run_gmail_sync_background(user_id=user_id, access_token=access_token))
+            await email_repo.upsert_sync_state(user_id=user_id, provider=sync_provider, status="syncing", synced_count=0)
+            
+            if sync_provider == "calendar":
+                asyncio.create_task(run_calendar_sync_background(user_id=user_id, access_token=access_token))
+            else:
+                asyncio.create_task(run_gmail_sync_background(user_id=user_id, access_token=access_token))
+
             return {
+                "provider": sync_provider,
                 "status": "syncing",
                 "synced_count": 0,
                 "last_message_id": None,
@@ -320,6 +364,7 @@ async def get_sync_status(
             }
 
         return {
+            "provider": sync_provider,
             "status": "idle",
             "synced_count": 0,
             "last_message_id": None,
@@ -327,6 +372,7 @@ async def get_sync_status(
         }
 
     return {
+        "provider": sync_provider,
         "status": state.get("status", "completed"),
         "synced_count": state.get("synced_count", 0),
         "last_message_id": state.get("last_message_id"),

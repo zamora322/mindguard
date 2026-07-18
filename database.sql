@@ -55,3 +55,25 @@ CREATE TABLE IF NOT EXISTS sync_state (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     UNIQUE(user_id, provider)
 );
+
+-- [2026-07-18] Added calendar_events table for storing fetched calendar events
+CREATE TABLE IF NOT EXISTS calendar_events (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    provider VARCHAR(20) DEFAULT 'GOOGLE',
+    external_id VARCHAR(255) NOT NULL UNIQUE,
+    title VARCHAR(500),
+    description TEXT,
+    organizer_name VARCHAR(255),
+    organizer_email VARCHAR(255),
+    start_time TIMESTAMP WITH TIME ZONE,
+    end_time TIMESTAMP WITH TIME ZONE,
+    timezone VARCHAR(100),
+    location VARCHAR(500),
+    attendees_count INT DEFAULT 0,
+    status VARCHAR(30),
+    created_at_google TIMESTAMP WITH TIME ZONE,
+    updated_at_google TIMESTAMP WITH TIME ZONE,
+    synced_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);

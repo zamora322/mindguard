@@ -20,10 +20,10 @@ class GmailSyncService:
     ) -> Dict[str, Any]:
         sync_limit = limit or settings.GMAIL_SYNC_LIMIT
 
-        # 1. Set state to syncing
+        # 1. Set state to syncing for provider 'gmail'
         await self.email_repo.upsert_sync_state(
             user_id=user_id,
-            provider="google",
+            provider="gmail",
             status="syncing",
             synced_count=0
         )
@@ -53,7 +53,7 @@ class GmailSyncService:
                     # No emails found
                     return await self.email_repo.upsert_sync_state(
                         user_id=user_id,
-                        provider="google",
+                        provider="gmail",
                         status="completed",
                         history_id=account_history_id,
                         synced_count=0
@@ -83,7 +83,7 @@ class GmailSyncService:
                 # 7. Set state to completed with synced count, last_message_id and history_id
                 return await self.email_repo.upsert_sync_state(
                     user_id=user_id,
-                    provider="google",
+                    provider="gmail",
                     status="completed",
                     last_message_id=latest_message_id,
                     history_id=account_history_id,
@@ -94,7 +94,7 @@ class GmailSyncService:
             print(f"Error during Gmail sync for user {user_id}: {e}")
             await self.email_repo.upsert_sync_state(
                 user_id=user_id,
-                provider="google",
+                provider="gmail",
                 status="failed",
                 synced_count=0
             )

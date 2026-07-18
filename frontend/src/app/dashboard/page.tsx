@@ -46,7 +46,11 @@ export default function DashboardPage() {
     gmail: false,
     calendar: false
   });
-  const [syncStatus, setSyncStatus] = useState<SyncStatusState>({
+  const [gmailSyncStatus, setGmailSyncStatus] = useState<SyncStatusState>({
+    status: "idle",
+    syncedCount: 0
+  });
+  const [calendarSyncStatus, setCalendarSyncStatus] = useState<SyncStatusState>({
     status: "idle",
     syncedCount: 0
   });
@@ -54,20 +58,37 @@ export default function DashboardPage() {
   useEffect(() => {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-    const fetchSyncStatus = async () => {
+    const fetchGmailSyncStatus = async () => {
       try {
-        const response = await fetch(`${apiUrl}/api/v1/auth/sync-status`, {
+        const response = await fetch(`${apiUrl}/api/v1/auth/sync-status?provider=gmail`, {
           credentials: "include",
         });
         if (response.ok) {
           const data = await response.json();
-          setSyncStatus({
+          setGmailSyncStatus({
             status: data.status,
             syncedCount: data.synced_count || 0
           });
         }
       } catch (e) {
-        console.error("Error al obtener sync-status:", e);
+        console.error("Error al obtener gmail sync-status:", e);
+      }
+    };
+
+    const fetchCalendarSyncStatus = async () => {
+      try {
+        const response = await fetch(`${apiUrl}/api/v1/auth/sync-status?provider=calendar`, {
+          credentials: "include",
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCalendarSyncStatus({
+            status: data.status,
+            syncedCount: data.synced_count || 0
+          });
+        }
+      } catch (e) {
+        console.error("Error al obtener calendar sync-status:", e);
       }
     };
 
@@ -80,7 +101,10 @@ export default function DashboardPage() {
           const data = await response.json();
           setIntegrations(data);
           if (data.gmail) {
-            fetchSyncStatus();
+            fetchGmailSyncStatus();
+          }
+          if (data.calendar) {
+            fetchCalendarSyncStatus();
           }
         }
       } catch (e) {
@@ -111,18 +135,18 @@ export default function DashboardPage() {
     fetchSession();
   }, []);
 
-  // Polling sync status if currently syncing or idle with gmail connected
+  // Polling gmail sync status if currently syncing or idle
   useEffect(() => {
-    if (integrations.gmail && (syncStatus.status === "syncing" || syncStatus.status === "idle")) {
+    if (integrations.gmail && (gmailSyncStatus.status === "syncing" || gmailSyncStatus.status === "idle")) {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const interval = setInterval(async () => {
         try {
-          const res = await fetch(`${apiUrl}/api/v1/auth/sync-status`, {
+          const res = await fetch(`${apiUrl}/api/v1/auth/sync-status?provider=gmail`, {
             credentials: "include"
           });
           if (res.ok) {
             const data = await res.json();
-            setSyncStatus({
+            setGmailSyncStatus({
               status: data.status,
               syncedCount: data.synced_count || 0
             });
@@ -131,12 +155,39 @@ export default function DashboardPage() {
             }
           }
         } catch (e) {
-          console.error("Error en polling de sync-status:", e);
+          console.error("Error en polling de gmail sync-status:", e);
         }
       }, 2000);
       return () => clearInterval(interval);
     }
-  }, [integrations.gmail, syncStatus.status]);
+  }, [integrations.gmail, gmailSyncStatus.status]);
+
+  // Polling calendar sync status if currently syncing or idle
+  useEffect(() => {
+    if (integrations.calendar && (calendarSyncStatus.status === "syncing" || calendarSyncStatus.status === "idle")) {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const interval = setInterval(async () => {
+        try {
+          const res = await fetch(`${apiUrl}/api/v1/auth/sync-status?provider=calendar`, {
+            credentials: "include"
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setCalendarSyncStatus({
+              status: data.status,
+              syncedCount: data.synced_count || 0
+            });
+            if (data.status === "completed" || data.status === "failed") {
+              clearInterval(interval);
+            }
+          }
+        } catch (e) {
+          console.error("Error en polling de calendar sync-status:", e);
+        }
+      }, 2000);
+      return () => clearInterval(interval);
+    }
+  }, [integrations.calendar, calendarSyncStatus.status]);
 
   const handleLogout = async () => {
     try {
@@ -206,19 +257,19 @@ export default function DashboardPage() {
         <nav className={styles.sidebarNav}>
           <a href="#" className={`${styles.navItem} ${styles.navItemActive}`}>
             <Home className={styles.navIcon} size={20} />
-            <span className={styles.navText}>Inicio</span>
+            <span>Inicio</span>
           </a>
           <a href="#" className={styles.navItem}>
             <Plug className={styles.navIcon} size={20} />
-            <span className={styles.navText}>Integraciones</span>
+            <span>Integraciones</span>
           </a>
           <a href="#" className={styles.navItem}>
             <CalendarCheck className={styles.navIcon} size={20} />
-            <span className={styles.navText}>Mi Jornada</span>
+            <span>Mi Jornada</span>
           </a>
           <a href="#" className={styles.navItem}>
             <Settings className={styles.navIcon} size={20} />
-            <span className={styles.navText}>Configuración</span>
+            <span>Configuración</span>
           </a>
         </nav>
 
@@ -226,11 +277,11 @@ export default function DashboardPage() {
           <div className={styles.divider}></div>
           <a href="#" className={styles.navItem}>
             <HelpCircle className={styles.navIcon} size={20} />
-            <span className={styles.navText}>Ayuda</span>
+            <span>Ayuda</span>
           </a>
           <button onClick={handleLogout} className={styles.logoutButton}>
-            <LogOut className={styles.navIcon} size={20} />
-            <span className={styles.navText}>Cerrar Sesión</span>
+            <LogOut className={styles.navIcon} size={18} />
+            <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
@@ -301,7 +352,7 @@ export default function DashboardPage() {
                 </div>
                 <span className={integrations.gmail ? styles.statusTextConnected : styles.statusTextDisconnected}>
                   {integrations.gmail 
-                    ? (syncStatus.status === "syncing" ? "🟡 Sincronizando..." : "🟢 Conectado") 
+                    ? (gmailSyncStatus.status === "syncing" ? "🟡 Sincronizando..." : "🟢 Conectado") 
                     : "⚪ No conectado"}
                 </span>
               </div>
@@ -310,7 +361,7 @@ export default function DashboardPage() {
               </p>
               
               {/* Syncing State Progress Bar */}
-              {integrations.gmail && syncStatus.status === "syncing" && (
+              {integrations.gmail && gmailSyncStatus.status === "syncing" && (
                 <div className={styles.syncProgressContainer}>
                   <div className={styles.syncProgressLabel}>
                     <Loader2 className={styles.syncSpinnerIcon} size={16} />
@@ -323,12 +374,12 @@ export default function DashboardPage() {
               )}
 
               {/* Sync Completed State Badge */}
-              {integrations.gmail && syncStatus.status === "completed" && (
+              {integrations.gmail && gmailSyncStatus.status === "completed" && (
                 <div className={styles.syncSuccessBadge}>
                   <CheckCircle2 size={14} />
                   <span>
-                    {syncStatus.syncedCount > 0
-                      ? `${syncStatus.syncedCount} correos sincronizados`
+                    {gmailSyncStatus.syncedCount > 0
+                      ? `${gmailSyncStatus.syncedCount} correos sincronizados`
                       : "Sincronizado con éxito"}
                   </span>
                 </div>
@@ -353,12 +404,39 @@ export default function DashboardPage() {
                   <h3 className={styles.cardTitle}>Google Calendar</h3>
                 </div>
                 <span className={integrations.calendar ? styles.statusTextConnected : styles.statusTextDisconnected}>
-                  {integrations.calendar ? "🟢 Conectado" : "⚪ No conectado"}
+                  {integrations.calendar 
+                    ? (calendarSyncStatus.status === "syncing" ? "🟡 Sincronizando..." : "🟢 Conectado") 
+                    : "⚪ No conectado"}
                 </span>
               </div>
               <p className={styles.cardDescription}>
                 Conecta tu calendario para identificar reuniones, bloques de enfoque y posibles conflictos.
               </p>
+
+              {/* Syncing State Progress Bar */}
+              {integrations.calendar && calendarSyncStatus.status === "syncing" && (
+                <div className={styles.syncProgressContainer}>
+                  <div className={styles.syncProgressLabel}>
+                    <Loader2 className={styles.syncSpinnerIcon} size={16} />
+                    <span>Sincronizando eventos de los próximos 8 días...</span>
+                  </div>
+                  <div className={styles.progressBarTrack}>
+                    <div className={styles.progressBarFill}></div>
+                  </div>
+                </div>
+              )}
+
+              {/* Sync Completed State Badge */}
+              {integrations.calendar && calendarSyncStatus.status === "completed" && (
+                <div className={styles.syncSuccessBadge}>
+                  <CheckCircle2 size={14} />
+                  <span>
+                    {calendarSyncStatus.syncedCount > 0
+                      ? `${calendarSyncStatus.syncedCount} eventos sincronizados (8 días)`
+                      : "Sincronizado con éxito"}
+                  </span>
+                </div>
+              )}
             </div>
             {!integrations.calendar && (
               <button 
