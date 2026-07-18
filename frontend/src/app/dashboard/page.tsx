@@ -384,7 +384,7 @@ export default function DashboardPage() {
                 <div className={styles.syncProgressContainer}>
                   <div className={styles.syncProgressLabel}>
                     <Loader2 className={styles.syncSpinnerIcon} size={16} />
-                    <span>Sincronizando tus últimos 30 correos...</span>
+                    <span>Sincronizando correos de los últimos 8 días...</span>
                   </div>
                   <div className={styles.progressBarTrack}>
                     <div className={styles.progressBarFill}></div>
@@ -399,8 +399,8 @@ export default function DashboardPage() {
                     <CheckCircle2 size={14} />
                     <span>
                       {gmailSyncStatus.syncedCount > 0
-                        ? `${gmailSyncStatus.syncedCount} correos nuevos agregados`
-                        : "0 correos nuevos"}
+                        ? `${gmailSyncStatus.syncedCount} correos nuevos agregados (8 días)`
+                        : "0 correos nuevos (8 días)"}
                     </span>
                   </div>
                   <button 

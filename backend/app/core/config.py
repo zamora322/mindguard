@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     SECRET_KEY: str = "secret-fallback-do-not-use-in-production"
 
     # Gmail Sync Configuration
-    GMAIL_SYNC_LIMIT: int = 30
+    GMAIL_SYNC_DAYS: int = 8
 
     # Calendar Sync Configuration
     CALENDAR_SYNC_DAYS: int = 8

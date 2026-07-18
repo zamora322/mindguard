@@ -16,9 +16,9 @@ class GmailSyncService:
         self,
         user_id: str,
         access_token: str,
-        limit: Optional[int] = None
+        days: Optional[int] = None
     ) -> Dict[str, Any]:
-        sync_limit = limit or settings.GMAIL_SYNC_LIMIT
+        sync_days = days or settings.GMAIL_SYNC_DAYS
 
         # 1. Set state to syncing for provider 'gmail'
         await self.email_repo.upsert_sync_state(
@@ -30,7 +30,9 @@ class GmailSyncService:
 
         try:
             headers = {"Authorization": f"Bearer {access_token}"}
-            params = {"maxResults": sync_limit}
+            # Search query parameter for emails within the last X days
+            query_str = f"newer_than:{sync_days}d"
+            params = {"q": query_str, "maxResults": 500}
 
             async with httpx.AsyncClient(timeout=30.0) as client:
                 # 2. Get current profile historyId from Gmail API
@@ -41,7 +43,7 @@ class GmailSyncService:
                     if prof_data.get("historyId"):
                         account_history_id = str(prof_data.get("historyId"))
 
-                # 3. Query Gmail API for the recent message IDs
+                # 3. Query Gmail API for message IDs within the specified day window
                 list_response = await client.get(self.messages_list_url, headers=headers, params=params)
                 if list_response.status_code != 200:
                     raise Exception(f"Failed to list Gmail messages: {list_response.text}")
@@ -72,7 +74,7 @@ class GmailSyncService:
                         parsed = self._parse_gmail_message(msg_data)
                         parsed_emails.append(parsed)
 
-                # 5. Save parsed emails to database
+                # 5. Save parsed emails to database (counting only new insertions)
                 inserted_count = await self.email_repo.save_emails(user_id, parsed_emails)
 
                 # 6. Get the latest google_message_id and history_id
@@ -80,7 +82,7 @@ class GmailSyncService:
                 if not account_history_id and parsed_emails and parsed_emails[0].get("history_id"):
                     account_history_id = parsed_emails[0].get("history_id")
 
-                # 7. Set state to completed with synced count, last_message_id and history_id
+                # 7. Set state to completed with newly inserted count, last_message_id and history_id
                 return await self.email_repo.upsert_sync_state(
                     user_id=user_id,
                     provider="gmail",
