@@ -12,7 +12,7 @@ class PostgresCalendarRepository(CalendarRepository):
             return 0
 
         user_uuid = uuid.UUID(user_id) if isinstance(user_id, str) else user_id
-        count = 0
+        new_count = 0
 
         query = """
             INSERT INTO calendar_events (
@@ -32,10 +32,11 @@ class PostgresCalendarRepository(CalendarRepository):
                 status = EXCLUDED.status,
                 updated_at_google = EXCLUDED.updated_at_google,
                 synced_at = CURRENT_TIMESTAMP
+            RETURNING (xmax = 0) AS is_new
         """
 
         for item in events_list:
-            await self.conn.execute(
+            row = await self.conn.fetchrow(
                 query,
                 user_uuid,
                 item.get("provider", "GOOGLE"),
@@ -53,6 +54,7 @@ class PostgresCalendarRepository(CalendarRepository):
                 item.get("created_at_google"),
                 item.get("updated_at_google")
             )
-            count += 1
+            if row and row["is_new"]:
+                new_count += 1
 
-        return count
+        return new_count

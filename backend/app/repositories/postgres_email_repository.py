@@ -13,7 +13,7 @@ class PostgresEmailRepository(EmailRepository):
             return 0
 
         user_uuid = uuid.UUID(user_id) if isinstance(user_id, str) else user_id
-        count = 0
+        new_count = 0
 
         query = """
             INSERT INTO emails (
@@ -28,11 +28,12 @@ class PostgresEmailRepository(EmailRepository):
                 is_starred = EXCLUDED.is_starred,
                 labels = EXCLUDED.labels,
                 synced_at = CURRENT_TIMESTAMP
+            RETURNING (xmax = 0) AS is_new
         """
 
         for item in email_list:
             labels_json = json.dumps(item.get("labels", []))
-            await self.conn.execute(
+            row = await self.conn.fetchrow(
                 query,
                 user_uuid,
                 item.get("google_message_id"),
@@ -47,9 +48,10 @@ class PostgresEmailRepository(EmailRepository):
                 item.get("has_attachments", False),
                 labels_json
             )
-            count += 1
+            if row and row["is_new"]:
+                new_count += 1
 
-        return count
+        return new_count
 
     async def upsert_sync_state(
         self,

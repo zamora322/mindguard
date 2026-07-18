@@ -503,3 +503,37 @@
     display: block;
   }
 }
+
+.syncRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+  gap: 12px;
+}
+
+.syncButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #f1f3f4;
+  border: 1px solid #dadce0;
+  color: #3c4043;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.syncButton:hover {
+  background-color: #e8eaed;
+  color: #1a73e8;
+  border-color: #aecbfa;
+}
+
+.syncButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

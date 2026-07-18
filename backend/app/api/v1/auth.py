@@ -379,3 +379,56 @@ async def get_sync_status(
         "history_id": state.get("history_id"),
         "last_sync": state.get("last_sync").isoformat() if state.get("last_sync") else None
     }
+
+@router.post("/sync-trigger")
+async def trigger_manual_sync(
+    provider: str = "gmail",
+    mindguard_session: Optional[str] = Cookie(None),
+    email_repo: EmailRepository = Depends(get_email_repository),
+    user_repo: UserRepository = Depends(get_user_repository)
+):
+    """
+    Manually triggers background synchronization for Gmail or Google Calendar.
+    """
+    if not mindguard_session:
+        raise HTTPException(
+            status_code=401,
+            detail="Active session cookie not found."
+        )
+
+    user_payload = verify_session_token(mindguard_session)
+    if not user_payload:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid or expired session."
+        )
+
+    user_id = user_payload.get("id")
+    sync_provider = "calendar" if provider == "calendar" else "gmail"
+    required_scope = (
+        "https://www.googleapis.com/auth/calendar.readonly" 
+        if sync_provider == "calendar" 
+        else "https://www.googleapis.com/auth/gmail.readonly"
+    )
+
+    integration = await user_repo.get_integrations(user_id)
+    if not integration or not integration.get("access_token") or required_scope not in integration.get("scopes", ""):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Integration for {sync_provider} is not connected."
+        )
+
+    access_token = integration.get("access_token")
+
+    # Set status to syncing
+    await email_repo.upsert_sync_state(user_id=user_id, provider=sync_provider, status="syncing", synced_count=0)
+
+    if sync_provider == "calendar":
+        asyncio.create_task(run_calendar_sync_background(user_id=user_id, access_token=access_token))
+    else:
+        asyncio.create_task(run_gmail_sync_background(user_id=user_id, access_token=access_token))
+
+    return {
+        "status": "success",
+        "message": f"Manual sync triggered for {sync_provider}."
+    }

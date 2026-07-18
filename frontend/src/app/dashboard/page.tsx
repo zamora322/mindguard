@@ -15,7 +15,8 @@ import {
   Calendar, 
   Brain, 
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  RefreshCw
 } from "lucide-react";
 import styles from "./dashboard.module.css";
 
@@ -232,6 +233,24 @@ export default function DashboardPage() {
     }
   };
 
+  const handleManualSync = async (provider: "gmail" | "calendar") => {
+    try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      if (provider === "gmail") {
+        setGmailSyncStatus({ status: "syncing", syncedCount: 0 });
+      } else {
+        setCalendarSyncStatus({ status: "syncing", syncedCount: 0 });
+      }
+
+      await fetch(`${apiUrl}/api/v1/auth/sync-trigger?provider=${provider}`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (e) {
+      console.error(`Error al iniciar sincronización manual de ${provider}:`, e);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className={styles.loadingContainer}>
@@ -373,15 +392,25 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Sync Completed State Badge */}
+              {/* Sync Completed State Badge & Manual Sync Button */}
               {integrations.gmail && gmailSyncStatus.status === "completed" && (
-                <div className={styles.syncSuccessBadge}>
-                  <CheckCircle2 size={14} />
-                  <span>
-                    {gmailSyncStatus.syncedCount > 0
-                      ? `${gmailSyncStatus.syncedCount} correos sincronizados`
-                      : "Sincronizado con éxito"}
-                  </span>
+                <div className={styles.syncRow}>
+                  <div className={styles.syncSuccessBadge}>
+                    <CheckCircle2 size={14} />
+                    <span>
+                      {gmailSyncStatus.syncedCount > 0
+                        ? `${gmailSyncStatus.syncedCount} correos nuevos agregados`
+                        : "0 correos nuevos"}
+                    </span>
+                  </div>
+                  <button 
+                    className={styles.syncButton}
+                    onClick={() => handleManualSync("gmail")}
+                    title="Sincronizar Gmail manualmente"
+                  >
+                    <RefreshCw size={14} />
+                    <span>Sincronizar ahora</span>
+                  </button>
                 </div>
               )}
             </div>
@@ -426,15 +455,25 @@ export default function DashboardPage() {
                 </div>
               )}
 
-              {/* Sync Completed State Badge */}
+              {/* Sync Completed State Badge & Manual Sync Button */}
               {integrations.calendar && calendarSyncStatus.status === "completed" && (
-                <div className={styles.syncSuccessBadge}>
-                  <CheckCircle2 size={14} />
-                  <span>
-                    {calendarSyncStatus.syncedCount > 0
-                      ? `${calendarSyncStatus.syncedCount} eventos sincronizados (8 días)`
-                      : "Sincronizado con éxito"}
-                  </span>
+                <div className={styles.syncRow}>
+                  <div className={styles.syncSuccessBadge}>
+                    <CheckCircle2 size={14} />
+                    <span>
+                      {calendarSyncStatus.syncedCount > 0
+                        ? `${calendarSyncStatus.syncedCount} eventos nuevos agregados (8 días)`
+                        : "0 eventos nuevos (8 días)"}
+                    </span>
+                  </div>
+                  <button 
+                    className={styles.syncButton}
+                    onClick={() => handleManualSync("calendar")}
+                    title="Sincronizar Google Calendar manualmente"
+                  >
+                    <RefreshCw size={14} />
+                    <span>Sincronizar ahora</span>
+                  </button>
                 </div>
               )}
             </div>
