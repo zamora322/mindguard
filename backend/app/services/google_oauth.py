@@ -21,7 +21,7 @@ class GoogleOAuthProvider(OAuthProvider):
             "scope": scopes,
             "access_type": "offline",
             "prompt": "select_account",
-            "include_granted_scopes": "true" # Enforce Google incremental authorization
+            "include_granted_scopes": "true"
         }
         return f"{self.auth_url}?{urlencode(params)}"
 
@@ -42,7 +42,7 @@ class GoogleOAuthProvider(OAuthProvider):
             
             tokens = token_response.json()
             access_token = tokens.get("access_token")
-            # Google returns the space-separated list of scopes approved by the user
+            refresh_token = tokens.get("refresh_token")
             granted_scopes = tokens.get("scope", "")
             
             # 2. Fetch user profile using the access token
@@ -52,6 +52,8 @@ class GoogleOAuthProvider(OAuthProvider):
                 raise Exception(f"Failed to fetch user info from Google: {user_response.text}")
                 
             user_data = user_response.json()
-            # Append the granted scopes to the profile info
+            # Append tokens and granted scopes to profile dictionary
             user_data["granted_scopes"] = granted_scopes
+            user_data["access_token"] = access_token
+            user_data["refresh_token"] = refresh_token
             return user_data

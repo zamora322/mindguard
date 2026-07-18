@@ -101,6 +101,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  margin-top: auto;
 }
 
 .divider {
@@ -200,8 +201,8 @@
 
 .profileCardContent {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .profileHeader {
@@ -211,19 +212,18 @@
 }
 
 .profileAvatar {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #E8F0FE;
 }
 
 .profileAvatarPlaceholder {
-  width: 56px;
-  height: 56px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
-  background-color: #E8F0FE;
-  color: #1a73e8;
+  background-color: #1a73e8;
+  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -237,7 +237,7 @@
 }
 
 .profileName {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 500;
   color: #202124;
   margin: 0 0 4px 0;
@@ -249,65 +249,53 @@
 }
 
 .badgeContainer {
-  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
 }
 
 .statusBadge {
-  background-color: #E6F4EA;
-  color: #137333;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  z-index: 2;
-  position: relative;
+  padding: 4px 12px;
+  background-color: #E6F4EA;
+  color: #137333;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .statusBadgeDisconnected {
-  background-color: #F1F3F4;
-  color: #5F6368;
-  padding: 6px 12px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  z-index: 2;
-  position: relative;
+  padding: 4px 12px;
+  background-color: #F1F3F4;
+  color: #5F6368;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .statusDot {
-  width: 6px;
-  height: 6px;
-  background-color: #34A853;
+  width: 8px;
+  height: 8px;
+  background-color: #1e8e3e;
   border-radius: 50%;
 }
 
 .statusDotDisconnected {
-  width: 6px;
-  height: 6px;
-  background-color: #70757a;
+  width: 8px;
+  height: 8px;
+  background-color: #5F6368;
   border-radius: 50%;
-}
-
-.accentWave {
-  position: absolute;
-  top: -45px;
-  right: -45px;
-  width: 130px;
-  height: 130px;
-  background-color: #E8F0FE;
-  border-radius: 50%;
-  z-index: 1;
 }
 
 .cardFooter {
   border-top: 1px solid #F1F3F4;
-  padding-top: 16px;
+  padding-top: 12px;
   margin-top: 16px;
 }
 
@@ -315,119 +303,94 @@
   font-size: 11px;
   font-weight: 700;
   color: #5F6368;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.5px;
 }
 
-/* Card Common Elements */
+/* Card Header Inline */
 .cardHeaderInline {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
-  width: 100%;
 }
 
 .cardHeaderLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.gmailIcon {
-  width: 24px;
-  height: 24px;
-  color: #EA4335; /* Gmail Red */
-}
-
-.calendarIcon {
-  width: 24px;
-  height: 24px;
-  color: #4285F4; /* Google Blue */
+  gap: 10px;
 }
 
 .cardTitle {
   font-size: 16px;
   font-weight: 500;
+  color: #202124;
   margin: 0;
-}
-
-.cardDescription {
-  font-size: 13px;
-  line-height: 1.5;
-  color: #5F6368;
-  margin: 0 0 20px 0;
-  min-height: 40px;
 }
 
 .statusTextConnected {
   font-size: 12px;
-  font-weight: 500;
   color: #137333;
+  font-weight: 500;
   background-color: #E6F4EA;
-  padding: 4px 8px;
+  padding: 2px 8px;
   border-radius: 12px;
 }
 
 .statusTextDisconnected {
   font-size: 12px;
-  font-weight: 500;
   color: #5F6368;
+  font-weight: 500;
   background-color: #F1F3F4;
-  padding: 4px 8px;
+  padding: 2px 8px;
   border-radius: 12px;
 }
 
+.gmailIcon {
+  color: #EA4335;
+}
+
+.calendarIcon {
+  color: #4285F4;
+}
+
+.cardDescription {
+  font-size: 13px;
+  color: #5F6368;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+}
+
 .outlineButton {
-  background-color: #ffffff;
-  border: 1px solid #DADCE0;
-  color: #1a73e8; /* Google Blue */
-  padding: 10px 16px;
-  border-radius: 8px;
+  background-color: transparent;
+  border: 1px solid #1a73e8;
+  color: #1a73e8;
+  padding: 8px 16px;
+  border-radius: 4px;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  transition: background-color 0.2s ease;
   width: 100%;
-  transition: all 0.2s ease;
 }
 
 .outlineButton:hover {
   background-color: #F8F9FA;
-  border-color: #1a73e8;
 }
 
-.outlineButtonConnected {
-  background-color: #ffffff;
-  border: 1px solid #DADCE0;
-  color: #ea4335; /* Red text for disconnect */
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  cursor: pointer;
-  width: 100%;
-  transition: all 0.2s ease;
-}
-
-.outlineButtonConnected:hover {
-  background-color: #FCE8E6;
-  border-color: #ea4335;
-}
-
-/* Cognitive Load Card Specifics (Empty/Inactive) */
+/* Cognitive Load Card Specifics */
 .cognitiveCard {
-  border-style: dashed;
-  border-color: #DADCE0;
-  background-color: #F1F3F4;
   align-items: center;
-  justify-content: center;
   text-align: center;
+  justify-content: center;
+  background-color: #FAFAFA;
+  border-style: dashed;
 }
 
 .cognitiveIconContainer {
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background-color: #e4e7e9;
+  background-color: #E8EAED;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -435,139 +398,84 @@
 }
 
 .cognitiveIcon {
-  width: 24px;
-  height: 24px;
-  color: #70757a;
+  color: #5F6368;
 }
 
 .cognitiveTitle {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 500;
-  margin: 0 0 6px 0;
+  color: #202124;
+  margin: 0 0 8px 0;
 }
 
 .cognitiveDescription {
   font-size: 12px;
   color: #5F6368;
-  max-width: 260px;
-  margin: 0 0 8px 0;
-  line-height: 1.4;
+  margin: 0 0 4px 0;
+  max-width: 200px;
 }
 
-.cognitiveFooter {
-  font-size: 11px;
-  color: #70757a;
-  font-style: italic;
-}
-
-/* Recent Activity Section */
-.recentActivitySection {
+/* Sync Progress Bar Styles inside Card */
+.syncProgressContainer {
   margin-top: 16px;
-}
-
-.sectionTitle {
-  font-size: 18px;
-  font-weight: 500;
-  color: #202124;
-  margin: 0 0 16px 0;
-}
-
-.activityEmptyCard {
-  background-color: #ffffff;
-  border: 1px solid #DADCE0;
-  border-radius: 12px;
-  padding: 48px 24px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  gap: 8px;
 }
 
-.historyIcon {
-  width: 36px;
-  height: 36px;
-  color: #DADCE0;
-  margin-bottom: 16px;
-}
-
-.activityEmptyText {
-  font-size: 13px;
-  color: #5F6368;
-  max-width: 340px;
-  margin: 0;
-  line-height: 1.5;
-}
-
-/* Loading & Access Denied Fallbacks */
-.loadingContainer,
-.deniedContainer {
+.syncProgressLabel {
   display: flex;
   align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  background-color: #F8F9FA;
-  padding: 20px;
+  gap: 8px;
+  font-size: 13px;
+  color: #1a73e8;
+  font-weight: 500;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 3px solid #f3f3f3;
-  border-top: 3px solid #1a73e8;
-  border-radius: 50%;
+.syncSpinnerIcon {
   animation: spin 1s linear infinite;
-  margin-right: 16px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
-.loadingTitle {
-  font-size: 18px;
-  font-weight: 500;
-}
-
-.deniedCard {
-  background-color: #ffffff;
-  border: 1px solid #DADCE0;
-  border-radius: 12px;
-  padding: 40px;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-.errorIcon {
-  font-size: 48px;
-  margin-bottom: 16px;
-}
-
-.titleError {
-  color: #ea4335 !important;
-  font-size: 20px !important;
-  margin-bottom: 8px !important;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: #5F6368;
-  margin-bottom: 24px;
-  line-height: 1.5;
-}
-
-.btnPrimary {
-  background-color: #1a73e8 !important;
-  color: white !important;
+.progressBarTrack {
   width: 100%;
-  height: 40px;
-  border-radius: 8px;
-  border: none;
+  height: 6px;
+  background-color: #e8eaed;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a73e8, #669df6, #1a73e8);
+  background-size: 200% 100%;
+  border-radius: 9999px;
+  animation: progressPulse 1.5s ease-in-out infinite;
+  width: 100%;
+}
+
+@keyframes progressPulse {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.syncSuccessBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding: 4px 10px;
+  background-color: #e6f4ea;
+  border: 1px solid #ceead6;
+  border-radius: 9999px;
+  font-size: 12px;
   font-weight: 500;
-  cursor: pointer;
+  color: #137333;
 }
 
 /* Responsiveness */

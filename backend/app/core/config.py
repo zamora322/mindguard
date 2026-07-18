@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     # JWT Security Configuration
     SECRET_KEY: str = "secret-fallback-do-not-use-in-production"
 
+    # Gmail Sync Configuration
+    GMAIL_SYNC_LIMIT: int = 30
+
     model_config = SettingsConfigDict(
         case_sensitive=True,
         env_file=".env",

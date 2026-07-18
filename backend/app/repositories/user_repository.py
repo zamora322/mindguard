@@ -40,10 +40,12 @@ class UserRepository(ABC):
         user_id: str,
         provider: str,
         status: str,
-        scopes: str
+        scopes: str,
+        access_token: Optional[str] = None,
+        refresh_token: Optional[str] = None
     ) -> Dict[str, Any]:
         """
-        Saves or updates a user integration provider record and its authorized scopes.
+        Saves or updates a user integration provider record, its authorized scopes, and access tokens.
         """
         pass
 
